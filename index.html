@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>For My Best Friend</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0618;--card:#17102e;--line:#2c2150;--text:#f1ecff;--soft:#b9aee0;--accent:#7c5cff}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;min-height:100vh;overflow-x:hidden}
+canvas{position:fixed;inset:0;z-index:0}
+.fl{position:fixed;z-index:0;bottom:-40px;opacity:.35;animation:fly linear infinite;pointer-events:none}
+@keyframes fly{to{transform:translateY(-115vh) rotate(25deg)}}
+.screen{position:relative;z-index:1;display:none;min-height:100vh;padding:32px 20px}
+.screen.on{display:block}
+h1,h2{font-family:'Playfair Display',serif;line-height:1.25}
+.lock{display:none;align-items:center;justify-content:center}
+.lock.on{display:flex}
+.box{width:100%;max-width:380px;background:rgba(23,16,46,.85);border:1px solid var(--line);border-radius:28px;padding:36px 26px;text-align:center}
+.box h1{font-size:28px;margin-bottom:12px}
+.box p{color:var(--soft);font-size:14px;margin-bottom:22px}
+input{width:100%;padding:14px;border-radius:14px;border:1px solid var(--line);background:#0f0a22;color:var(--text);font-size:16px;text-align:center;letter-spacing:1px;margin-bottom:16px}
+button{background:var(--accent);color:#fff;border:0;border-radius:999px;padding:14px 30px;font-size:16px;font-weight:500;font-family:inherit;box-shadow:0 0 24px rgba(124,92,255,.5)}
+button:focus-visible,input:focus-visible{outline:2px solid #fff;outline-offset:2px}
+#err{color:#ff8fa3;font-size:13px;min-height:18px;margin-top:12px}
+.shake{animation:sh .4s}
+@keyframes sh{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.wrap{max-width:460px;margin:0 auto}
+.title{text-align:center;font-size:30px;margin:24px 0 36px}
+.tl{position:relative;padding-left:22px;border-left:2px solid var(--line)}
+.m{background:var(--card);border:1px solid var(--line);border-radius:22px;overflow:hidden;margin-bottom:30px;position:relative}
+.m::before{content:"";position:absolute;left:-30px;top:26px;width:12px;height:12px;border-radius:50%;background:var(--accent)}
+.m .ph{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:linear-gradient(135deg,#2c2150,#17102e)}
+.m div{padding:16px 18px 20px}
+.m h2{font-size:20px;margin-bottom:6px;color:#cdbfff}
+.m p{font-size:14px;color:var(--soft);line-height:1.6}
+.env{text-align:center;margin-top:20px}
+.env h1{font-size:34px;margin-bottom:28px}
+.envl{width:100%;max-width:320px;height:200px;margin:0 auto;background:#3a2a78;border-radius:14px;position:relative;cursor:pointer;display:flex;align-items:center;justify-content:center;border:1px solid #5d49b3}
+.envl::before{content:"";position:absolute;top:0;left:0;right:0;height:100px;background:#4a3896;clip-path:polygon(0 0,100% 0,50% 100%);border-radius:14px 14px 0 0}
+.envl span{position:relative;background:rgba(255,255,255,.12);padding:12px 22px;border-radius:999px;font-size:15px}
+.hint{color:var(--soft);font-size:13px;margin-top:16px}
+#letter{display:none;margin-top:26px;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:26px 22px;text-align:left;animation:up .6s}
+@keyframes up{from{opacity:0;transform:translateY(20px)}}
+#letter p{line-height:1.9;font-size:15px;white-space:pre-line;color:var(--text)}
+#letter video{width:100%;border-radius:14px;margin-top:22px;background:#000}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<div id="fl"></div>
+
+<!-- 1. የይለፍ ቃል -->
+<section id="lock" class="screen lock on">
+  <div class="box" id="box">
+    <h1>Something Special Awaits...</h1>
+    <p>Enter the secret key to unlock our memories</p>
+    <input id="pw" type="password" placeholder="Enter Secret Code" autocomplete="off">
+    <button id="go">Unlock Experience</button>
+    <div id="err"></div>
+  </div>
+</section>
+
+<!-- 2. ትዝታዎች -->
+<section id="memories" class="screen">
+  <div class="wrap">
+    <h1 class="title" id="mtitle"></h1>
+    <div class="tl" id="tl"></div>
+    <div class="env">
+      <h1>A Message For You</h1>
+      <div class="envl" id="envl" role="button" tabindex="0"><span>💌 Tap To Open</span></div>
+      <p class="hint" id="hint">Click the envelope to read the full message</p>
+      <div id="letter"></div>
+    </div>
+  </div>
+</section>
+
+<script>
+/* ===== Edit only here ===== */
+const CONFIG = {
+  password: "B2nebsee",                 // secret code
+  title: "Our Memories",                // page title
+  memories: [                       // photo + text (upload photo1.jpg... to GitHub)
+    {photo:"photo1.jpg", title:"🌸 First Meeting", text:"Where it all began. A simple conversation turned into a lifetime of endless memories."},
+    {photo:"photo2.jpg", title:"😂 Funniest Memory", text:"That day we laughed until our stomachs hurt. Unfiltered joy and inside jokes forever."},
+    {photo:"photo3.jpg", title:"📸 My Favorite Photo", text:"Every time I see this photo, I smile."}
+  ],
+  message: "Hi [Friend's name]!\n\nI am so lucky to have you as a friend. Thank you for standing by me in good times and bad.\n\nPlease stay my best friend forever.\n\nFrom [Your name]",
+  video: "video.mp4"                // video (use "" to skip)
+};
+/* ======================== */
+
+const $=id=>document.getElementById(id);
+function check(){
+  if($('pw').value.trim().toLowerCase()===CONFIG.password.toLowerCase()){
+    $('lock').classList.remove('on');$('memories').classList.add('on');window.scrollTo(0,0);
+  }else{
+    $('err').textContent="Wrong code, please try again";
+    $('box').classList.remove('shake');void $('box').offsetWidth;$('box').classList.add('shake');
+  }
+}
+$('go').onclick=check;
+$('pw').addEventListener('keydown',e=>{if(e.key==='Enter')check()});
+
+$('mtitle').textContent=CONFIG.title;
+CONFIG.memories.forEach(m=>{
+  const d=document.createElement('div');d.className='m';
+  const img=document.createElement('img');img.className='ph';img.src=m.photo;img.alt=m.title;
+  img.onerror=()=>img.removeAttribute('src');
+  const t=document.createElement('div');
+  const h=document.createElement('h2');h.textContent=m.title;
+  const p=document.createElement('p');p.textContent=m.text;
+  t.append(h,p);d.append(img,t);$('tl').append(d);
+});
+
+function openLetter(){
+  const L=$('letter');
+  const p=document.createElement('p');p.textContent=CONFIG.message;L.append(p);
+  if(CONFIG.video){
+    const v=document.createElement('video');v.src=CONFIG.video;v.controls=true;v.playsInline=true;v.preload='metadata';L.append(v);
+  }
+  L.style.display='block';$('hint').style.display='none';
+  $('envl').onclick=null;$('envl').style.opacity='.5';
+  L.scrollIntoView({behavior:'smooth'});
+}
+$('envl').onclick=openLetter;
+$('envl').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')openLetter()});
+
+/* floating pink + panda emojis */
+const E=['🐼','🌸','🎀','💗','🐼','🩷','🌷'];
+for(let i=0;i<14;i++){
+  const e=document.createElement('span');e.className='fl';e.textContent=E[i%E.length];
+  e.style.left=(Math.random()*94)+'%';e.style.fontSize=(16+Math.random()*16)+'px';
+  e.style.animationDuration=(16+Math.random()*16)+'s';e.style.animationDelay=(-Math.random()*30)+'s';
+  $('fl').append(e);
+}
+/* stars */
+const c=$('stars'),x=c.getContext('2d');let S=[];
+function size(){c.width=innerWidth;c.height=innerHeight;S=Array.from({length:90},()=>({x:Math.random()*c.width,y:Math.random()*c.height,r:Math.random()*1.5+.3,s:Math.random()*.3+.05}))}
+function draw(){x.clearRect(0,0,c.width,c.height);x.fillStyle='#cfc4ff';
+  S.forEach(s=>{s.y=(s.y+s.s)%c.height;x.globalAlpha=.4+Math.abs(Math.sin(s.x+s.y/50))*.5;x.beginPath();x.arc(s.x,s.y,s.r,0,7);x.fill()});
+  requestAnimationFrame(draw)}
+addEventListener('resize',size);size();
+if(!matchMedia('(prefers-reduced-motion:reduce)').matches)draw();
+</script>
+</body>
+</html>
